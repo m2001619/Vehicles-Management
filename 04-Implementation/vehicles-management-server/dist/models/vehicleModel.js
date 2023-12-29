@@ -23,8 +23,16 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// mongoose
 const mongoose_1 = __importStar(require("mongoose"));
+// constants
+const Interfaces_1 = require("../constans/Interfaces");
+/** Start Schema **/
 const vehicleSchema = new mongoose_1.Schema({
+    usingStatus: {
+        type: String,
+        default: "available",
+    },
     make: {
         type: String,
         required: [true, "Vehicle should have the brand or manufacturer name."],
@@ -48,7 +56,12 @@ const vehicleSchema = new mongoose_1.Schema({
     fuelType: {
         type: String,
         required: [true, "Vehicle should have a type of fuel it uses."],
-        enum: ["gasoline", "diesel", "electric", "hybrid", "gas"],
+        enum: Interfaces_1.fuelTypes,
+    },
+    bodyType: {
+        type: String,
+        required: [true, "Vehicle should have a type of body."],
+        enum: Interfaces_1.bodyTypes,
     },
     mileage: {
         type: Number,
@@ -68,16 +81,19 @@ const vehicleSchema = new mongoose_1.Schema({
     },
     features: [String],
     registrationNumber: String,
-    bodyType: String,
-    TransmissionType: String,
-    garage: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: "Garage",
-        required: [true, "Vehicle should belong to a garage."],
+    TransmissionType: {
+        type: String,
+        required: [true, "Vehicle should have a type of transmission."],
+        enum: Interfaces_1.transmissionTypes,
     },
     numSeats: {
         type: Number,
         required: [true, "Vehicle should have the number of seats."],
+    },
+    garage: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: "Garage",
+        required: [true, "Vehicle should belong to a garage."],
     },
     user: {
         type: mongoose_1.Schema.Types.ObjectId,
@@ -126,16 +142,28 @@ const vehicleSchema = new mongoose_1.Schema({
             default: "Point",
             enum: ["Point"],
         },
-        coordinates: [Number],
+        coordinates: {
+            type: [Number],
+            default: [0, 0],
+        },
+    },
+    createdAt: {
+        type: Date,
+        default: new Date(),
+    },
+    status: {
+        type: String,
+        default: Interfaces_1.statuses.active,
     },
 }, {
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
 });
 vehicleSchema.index({ vehicle: 1 }, { weights: { unique: 1 } });
-vehicleSchema.index({ location: '2dsphere' });
-// @ts-ignore
-vehicleSchema.pre("find", function (next) {
+vehicleSchema.index({ location: "2dsphere" });
+/** End Schema **/
+/** Start Schema Middleware Functions **/
+vehicleSchema.pre(/^find/, function (next) {
     this.populate({
         path: "user",
         select: "name photo",
@@ -144,7 +172,14 @@ vehicleSchema.pre("find", function (next) {
         path: "garage",
         select: "name",
     });
+    this.populate({
+        path: "reservationArchive",
+        select: "status",
+    });
     next();
 });
+/** End Schema Middleware Functions **/
+/** Start Mongoose Functions **/
 const Vehicle = mongoose_1.default.model("Vehicle", vehicleSchema);
+/** End Mongoose Functions **/
 exports.default = Vehicle;

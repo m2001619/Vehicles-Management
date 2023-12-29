@@ -13,7 +13,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.vehicleWatcher = exports.socketHandler = void 0;
+// models
 const vehicleModel_1 = __importDefault(require("../models/vehicleModel"));
+/** Start Functions **/
 const socketHandler = (io) => {
     io.on("connection", (socket) => {
         socket.on("UPDATE_VEHICLE_LOCATION", (data) => __awaiter(void 0, void 0, void 0, function* () {
@@ -26,9 +28,6 @@ const socketHandler = (io) => {
                 location: newLocation,
             });
         }));
-        socket.on("disconnect", () => {
-            console.log("A user disconnected");
-        });
     });
 };
 exports.socketHandler = socketHandler;
@@ -37,8 +36,9 @@ const vehicleWatcher = (io) => __awaiter(void 0, void 0, void 0, function* () {
     changeStream.on("change", (event) => {
         if (event.operationType === "update") {
             const fullDocument = event.fullDocument;
-            io.to(String(fullDocument._id)).emit("VEHICLE_LOCATION_CHANGED", fullDocument);
+            io.emit(`VEHICLE_LOCATION_CHANGED_${fullDocument._id}`, fullDocument);
         }
     });
 });
 exports.vehicleWatcher = vehicleWatcher;
+/** End Functions **/

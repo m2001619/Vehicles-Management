@@ -1,34 +1,18 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const mongoose_1 = __importStar(require("mongoose"));
+// mongoose
+const mongoose_1 = __importDefault(require("mongoose"));
+// npm packages
 const validator_1 = __importDefault(require("validator"));
-const garageSchema = new mongoose_1.Schema({
+// interfaces
+const mongoose_2 = require("mongoose");
+// constants
+const Interfaces_1 = require("../constans/Interfaces");
+/** Start Schema **/
+const garageSchema = new mongoose_2.Schema({
     name: {
         type: String,
         required: [true, "Garage should have a name"],
@@ -52,7 +36,7 @@ const garageSchema = new mongoose_1.Schema({
     vehicles: {
         type: [
             {
-                type: mongoose_1.Schema.Types.ObjectId,
+                type: mongoose_2.Schema.Types.ObjectId,
                 ref: "Vehicle",
             },
         ],
@@ -61,15 +45,26 @@ const garageSchema = new mongoose_1.Schema({
     reservationArchive: {
         type: [
             {
-                type: mongoose_1.Schema.Types.ObjectId,
+                type: mongoose_2.Schema.Types.ObjectId,
                 ref: "ReservationArchive",
             },
         ],
         default: [],
     },
+    createdAt: {
+        type: Date,
+        default: new Date(),
+    },
+    status: {
+        type: String,
+        default: Interfaces_1.statuses.active,
+    },
 }, {
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
 });
+/** End Schema **/
+/** Start Mongoose Functions **/
 const Garage = mongoose_1.default.model("Garage", garageSchema);
+/** End Mongoose Functions **/
 exports.default = Garage;

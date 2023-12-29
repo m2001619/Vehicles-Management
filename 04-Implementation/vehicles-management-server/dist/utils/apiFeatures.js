@@ -1,17 +1,22 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class APIFeatures {
-    constructor(query, queryString) {
+    /** End Variables **/
+    /** Start constructor **/
+    constructor(query, queryString, Model) {
         this.query = query;
         this.queryString = queryString;
+        this.Model = Model;
     }
+    /** End constructor **/
+    /** Start Methods **/
     filter() {
         const queryObj = Object.assign({}, this.queryString);
         const excludedFields = ["page", "sort", "limit", "fields"];
         excludedFields.forEach((el) => delete queryObj[el]);
         // 1B) Advanced filtering
         let queryStr = JSON.stringify(queryObj);
-        queryStr = queryStr.replace(/\b(gte|gt|lte|lt|regex|options)\b/g, (match) => `$${match}`);
+        queryStr = queryStr.replace(/\b(gte|gt|lte|lt|regex|options|exists|ne)\b/g, (match) => `$${match}`);
         this.query = this.query.find(JSON.parse(queryStr));
         return this;
     }
@@ -36,10 +41,11 @@ class APIFeatures {
         return this;
     }
     paginate() {
+        this.length = this.Model.countDocuments(this.query);
         const page = +this.queryString.page || 1;
         const limit = +this.queryString.limit || 100;
         const skip = (page - 1) * limit;
-        this.query = this.query.skip(skip).limit(limit);
+        this.query = this.query.sort({ createdAt: -1 }).skip(skip).limit(limit);
         return this;
     }
 }

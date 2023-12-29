@@ -12,8 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const config_1 = require("../config/config");
+// npm packages
 const nodemailer_1 = __importDefault(require("nodemailer"));
+// project imports
+const config_1 = require("../config/config");
+/** Start Functions **/
 const sendEmail = (options) => __awaiter(void 0, void 0, void 0, function* () {
     const { host, port, user, password } = config_1.config.mailtrap;
     // 1) Create a transporter
@@ -35,4 +38,5 @@ const sendEmail = (options) => __awaiter(void 0, void 0, void 0, function* () {
     // 3) Actually send the email
     yield transporter.sendMail(mailOptions);
 });
+/** End Functions **/
 exports.default = sendEmail;

@@ -13,14 +13,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getImageUrl = void 0;
+// npm packages
 const cloudinary_1 = __importDefault(require("cloudinary"));
+// project imports
 const config_1 = require("../config/config");
+/** Start Variables **/
 const { cloud_name, api_key, api_secret } = config_1.config.cloudinary;
 cloudinary_1.default.v2.config({
     cloud_name,
     api_key,
     api_secret,
 });
+/** End Variables **/
+/** Start Functions **/
 const getImageUrl = (filePath, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const result = yield cloudinary_1.default.v2.uploader.upload(filePath, {
@@ -33,3 +38,4 @@ const getImageUrl = (filePath, next) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.getImageUrl = getImageUrl;
+/** End Functions **/

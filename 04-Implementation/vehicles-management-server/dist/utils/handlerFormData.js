@@ -10,7 +10,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleFormFiles = exports.handleFormFields = void 0;
+// project imports
 const storageCloud_1 = require("./storageCloud");
+/** Start Functions **/
 const handleFormFields = (fields) => __awaiter(void 0, void 0, void 0, function* () {
     const fieldsObj = {};
     Object.keys(fields).forEach((el) => {
@@ -24,11 +26,9 @@ const handleFormFields = (fields) => __awaiter(void 0, void 0, void 0, function*
     return fieldsObj;
 });
 exports.handleFormFields = handleFormFields;
-const handleFormFiles = (files, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const filesObj = {};
+const handleFormFiles = (files, next, filesObj = {}) => __awaiter(void 0, void 0, void 0, function* () {
     for (const key of Object.keys(files)) {
         if (files[key].length > 1) {
-            filesObj[key] = [];
             for (const file of files[key]) {
                 filesObj[key].push(yield (0, storageCloud_1.getImageUrl)(file.filepath, next));
             }
@@ -40,3 +40,4 @@ const handleFormFiles = (files, next) => __awaiter(void 0, void 0, void 0, funct
     return filesObj;
 });
 exports.handleFormFiles = handleFormFiles;
+/** End Functions **/

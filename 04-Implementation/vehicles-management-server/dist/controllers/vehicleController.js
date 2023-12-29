@@ -12,26 +12,56 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getNearlyVehicle = exports.getUserLikeVehicles = exports.dislikeVehicle = exports.likeVehicle = exports.reUseVehicle = exports.askToReturnVehicle = exports.acceptReturnVehicle = exports.getAskReturnVehicles = exports.updateVehicle = exports.createVehicle = exports.deleteVehicle = exports.getVehicle = exports.getAllVehicles = exports.getGarageVehicles = exports.getAvailableVehicles = void 0;
-const handlerFactory_1 = require("./handlerFactory");
+exports.getNearlyVehicle = exports.getUserLikeVehicles = exports.dislikeVehicle = exports.likeVehicle = exports.reUseVehicle = exports.askToReturnVehicle = exports.acceptReturnVehicle = exports.getAskReturnVehicles = exports.updateVehicle = exports.createVehicle = exports.deleteVehicle = exports.blockActiveVehicle = exports.getVehicle = exports.getAllVehicles = exports.getGarageVehicles = exports.getRequestedVehicles = exports.getAvailableVehicles = void 0;
+// project imports
+const reservationArchiveController_1 = require("./reservationArchiveController");
+const handlerFactory_1 = require("../utils/handlerFactory");
+const notification_1 = require("../utils/notification");
+const catchAsync_1 = __importDefault(require("../utils/catchAsync"));
+const AppError_1 = __importDefault(require("../utils/AppError"));
+// models
 const vehicleModel_1 = __importDefault(require("../models/vehicleModel"));
 const garageModel_1 = __importDefault(require("../models/garageModel"));
 const userModel_1 = __importDefault(require("../models/userModel"));
 const reservationArchiveModel_1 = __importDefault(require("../models/reservationArchiveModel"));
-const catchAsync_1 = __importDefault(require("../utils/catchAsync"));
-const AppError_1 = __importDefault(require("../utils/AppError"));
-const notification_1 = require("../utils/notification");
-// Access For User And Admin
-exports.getAvailableVehicles = (0, handlerFactory_1.getAll)(vehicleModel_1.default, () => ({
+const garageModel_2 = __importDefault(require("../models/garageModel"));
+// constants
+const Interfaces_1 = require("../constans/Interfaces");
+/** Start Handler Functions **/
+const vehicleDeleteFromReference = (vehicleData) => __awaiter(void 0, void 0, void 0, function* () {
+    const { reservationArchive, garage, likedUser } = vehicleData;
+    yield garageModel_2.default.findByIdAndUpdate(garage, {
+        $pull: { reservationArchive: vehicleData.id },
+    });
+    for (let archiveId of reservationArchive) {
+        const archive = yield reservationArchiveModel_1.default.findById(archiveId);
+        yield (0, reservationArchiveController_1.ReservationArchiveDeleteFromReference)(archive);
+    }
+    for (let userId of likedUser) {
+        yield userModel_1.default.findByIdAndUpdate(userId, {
+            $pull: { likeVehicles: vehicleData.id },
+        });
+    }
+});
+/** End Handler Functions **/
+/** Start Routes Functions **/
+exports.getAvailableVehicles = (0, handlerFactory_1.getAll)(vehicleModel_1.default, (req) => ({
     user: null,
+    status: req.user.role === "user" ? "ACTIVE" : { $in: Object.values(Interfaces_1.statuses) },
+}));
+exports.getRequestedVehicles = (0, handlerFactory_1.getAll)(vehicleModel_1.default, () => ({
+    requests: { $ne: [] },
 }));
 exports.getGarageVehicles = (0, handlerFactory_1.getAll)(vehicleModel_1.default, (req) => ({
     garage: req.params.garageId,
+    status: req.user.role === "user" ? "ACTIVE" : { $in: Object.values(Interfaces_1.statuses) },
 }));
-// Only access for admin
-exports.getAllVehicles = (0, handlerFactory_1.getAll)(vehicleModel_1.default);
+exports.getAllVehicles = (0, handlerFactory_1.getAll)(vehicleModel_1.default, (req) => ({
+    status: req.user.role === "user" ? "ACTIVE" : { $in: Object.values(Interfaces_1.statuses) },
+}));
 exports.getVehicle = (0, handlerFactory_1.getOne)(vehicleModel_1.default);
-exports.deleteVehicle = (0, handlerFactory_1.deleteOne)(vehicleModel_1.default);
+exports.blockActiveVehicle = (0, handlerFactory_1.blockActiveOne)(vehicleModel_1.default);
+exports.deleteVehicle = (0, handlerFactory_1.deleteOne)(vehicleModel_1.default, vehicleDeleteFromReference);
 exports.createVehicle = (0, handlerFactory_1.createOne)(vehicleModel_1.default, (formData, data) => __awaiter(void 0, void 0, void 0, function* () {
     yield garageModel_1.default.findByIdAndUpdate(formData.garage, {
         $push: { vehicles: data === null || data === void 0 ? void 0 : data._id },
@@ -47,9 +77,9 @@ exports.updateVehicle = (0, handlerFactory_1.updateOne)(vehicleModel_1.default, 
         });
     }
 }));
-exports.getAskReturnVehicles = (0, handlerFactory_1.getAll)(reservationArchiveModel_1.default, () => {
+exports.getAskReturnVehicles = (0, handlerFactory_1.getAll)(vehicleModel_1.default, () => {
     return {
-        status: "ask-to-return",
+        reservationArchive: { $elemMatch: { status: "ask-to-return" } }, //{$match: {_id: id, 'data.date': {$gte: from, $lte: to}}}
     };
 });
 exports.acceptReturnVehicle = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -59,7 +89,10 @@ exports.acceptReturnVehicle = (0, catchAsync_1.default)((req, res, next) => __aw
     if (!userId) {
         return next(new AppError_1.default("This vehicle is not in using mode.", 404));
     }
-    yield vehicleModel_1.default.findByIdAndUpdate(vehicleId, { $unset: { user: "" } });
+    yield vehicleModel_1.default.findByIdAndUpdate(vehicleId, {
+        $unset: { user: "" },
+        usingStatus: "available",
+    });
     const user = yield userModel_1.default.findByIdAndUpdate(userId, {
         $unset: { vehicle: "" },
     });
@@ -83,7 +116,8 @@ exports.askToReturnVehicle = (0, catchAsync_1.default)((req, res, next) => __awa
     const userId = req.user.id;
     const { odo } = req.body;
     const vehicle = yield vehicleModel_1.default.findById(vehicleId);
-    if (`${vehicle.user}` !== userId) {
+    //@ts-ignore
+    if (vehicle.user.id !== userId) {
         return next(new AppError_1.default("This vehicle has been in use by another user", 402));
     }
     yield reservationArchiveModel_1.default.findOneAndUpdate({
@@ -95,6 +129,14 @@ exports.askToReturnVehicle = (0, catchAsync_1.default)((req, res, next) => __awa
         "arrival.time": new Date(),
         "arrival.odo": odo,
     });
+    yield vehicleModel_1.default.findByIdAndUpdate(vehicleId, {
+        usingStatus: "ask-to-return",
+    });
+    const notificationData = {
+        title: "Vehicle Ask To Return",
+        body: `The user has asked to return vehicle: ${vehicle.make} ${vehicle.model} ${vehicle.year}`,
+    };
+    yield (0, notification_1.sendNotificationToAdmin)(notificationData);
     res.status(200).json({
         status: "success",
         message: "Send request successfully, Please wait accept from admin",
@@ -115,7 +157,7 @@ exports.reUseVehicle = (0, catchAsync_1.default)((req, res, next) => __awaiter(v
     }
     res.status(200).json({
         status: "success",
-        message: "Return's request canceled successfully .",
+        message: "Return's request canceled successfully.",
     });
 }));
 exports.likeVehicle = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -148,6 +190,7 @@ exports.dislikeVehicle = (0, catchAsync_1.default)((req, res) => __awaiter(void 
 }));
 exports.getUserLikeVehicles = (0, handlerFactory_1.getAll)(vehicleModel_1.default, (req) => ({
     likedUser: { $in: req.params.userId },
+    status: req.user.role === "user" ? "ACTIVE" : { $in: Object.values(Interfaces_1.statuses) },
 }));
 exports.getNearlyVehicle = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { distance, coordinates, unit } = req.params;
@@ -158,10 +201,12 @@ exports.getNearlyVehicle = (0, catchAsync_1.default)((req, res, next) => __await
     }
     const data = yield vehicleModel_1.default.find({
         location: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
+        status: req.user.role === "user" ? "ACTIVE" : { $in: Object.values(Interfaces_1.statuses) },
     }).exec();
     res.status(200).json({
         message: "connected Successfully",
         result: data.length,
-        data
+        data,
     });
 }));
+/** End Routes Functions **/

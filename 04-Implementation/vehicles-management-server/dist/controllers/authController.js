@@ -13,14 +13,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updatePassword = exports.resetPassword = exports.forgotPassword = exports.restrictTo = exports.protect = exports.login = exports.signup = exports.validateEmail = void 0;
+// npm packages
 const util_1 = require("util");
 const crypto_1 = __importDefault(require("crypto"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+// project imports
 const config_1 = require("../config/config");
-const userModel_1 = __importDefault(require("./../models/userModel"));
 const catchAsync_1 = __importDefault(require("./../utils/catchAsync"));
-const AppError_1 = __importDefault(require("./../utils/AppError"));
 const email_1 = __importDefault(require("./../utils/email"));
+const AppError_1 = __importDefault(require("./../utils/AppError"));
+// models
+const userModel_1 = __importDefault(require("./../models/userModel"));
+/** Start Handler Functions **/
 const signToken = (id) => {
     const { jwtSecret, jwtExpiresIn } = config_1.config.jwt;
     return jsonwebtoken_1.default.sign({ id }, jwtSecret, {
@@ -50,6 +54,8 @@ const createEmailValidationToken = function () {
     const hashToken = crypto_1.default.randomBytes(32).toString("hex");
     return crypto_1.default.createHash("sha256").update(hashToken).digest("hex");
 };
+/** End Handler Functions **/
+/** Start Routes Functions **/
 exports.validateEmail = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     // 1) Get user based on posted email
     const user = yield userModel_1.default.findOne({
@@ -177,7 +183,7 @@ exports.resetPassword = (0, catchAsync_1.default)((req, res, next) => __awaiter(
     // 1) Get user based on the token
     const hashedToken = crypto_1.default
         .createHash("sha256")
-        .update(req.params.token)
+        .update(req.body.token)
         .digest("hex");
     const user = yield userModel_1.default.findOne({
         passwordResetToken: hashedToken,
@@ -210,3 +216,4 @@ exports.updatePassword = (0, catchAsync_1.default)((req, res, next) => __awaiter
     // 4) Log user in, send JWT
     createSendToken(user, 200, res);
 }));
+/** End Routes Functions **/

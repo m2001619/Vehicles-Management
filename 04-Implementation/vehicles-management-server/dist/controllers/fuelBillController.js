@@ -12,13 +12,34 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getReservationFuelBills = exports.getVehicleFuelBills = exports.getUserFuelBills = exports.deleteFuelBill = exports.updateFuelBill = exports.createFuelBill = exports.getFuelBill = exports.getAllFuelBill = void 0;
-const handlerFactory_1 = require("./handlerFactory");
+exports.getReservationFuelBills = exports.getVehicleFuelBills = exports.getUserFuelBills = exports.deleteFuelBill = exports.updateFuelBill = exports.createFuelBill = exports.getFuelBill = exports.getAllFuelBill = exports.fuelBillDeleteFromReference = void 0;
+// project imports
+const handlerFactory_1 = require("../utils/handlerFactory");
+// models
 const fuelBillModel_1 = __importDefault(require("./../models/fuelBillModel"));
 const userModel_1 = __importDefault(require("./../models/userModel"));
 const reservationArchiveModel_1 = __importDefault(require("./../models/reservationArchiveModel"));
 const vehicleModel_1 = __importDefault(require("./../models/vehicleModel"));
-exports.getAllFuelBill = (0, handlerFactory_1.getAll)(fuelBillModel_1.default);
+/** Start Routes Functions **/
+const fuelBillDeleteFromReference = (data) => __awaiter(void 0, void 0, void 0, function* () {
+    yield userModel_1.default.findByIdAndUpdate(data.user, {
+        $pull: { fuelBill: data === null || data === void 0 ? void 0 : data._id },
+    });
+    yield vehicleModel_1.default.findByIdAndUpdate(data.vehicle, {
+        $pull: { fuelBill: data === null || data === void 0 ? void 0 : data._id },
+    });
+    yield reservationArchiveModel_1.default.findByIdAndUpdate(data.reservationArchive, {
+        $pull: { fuelBill: data === null || data === void 0 ? void 0 : data._id },
+    });
+});
+exports.fuelBillDeleteFromReference = fuelBillDeleteFromReference;
+exports.getAllFuelBill = (0, handlerFactory_1.getAll)(fuelBillModel_1.default, undefined, undefined, [
+    {
+        path: "user",
+        select: "name photo",
+    },
+    { path: "vehicle", select: "make model year images" },
+]);
 exports.getFuelBill = (0, handlerFactory_1.getOne)(fuelBillModel_1.default);
 exports.createFuelBill = (0, handlerFactory_1.createOne)(fuelBillModel_1.default, (formData, data) => __awaiter(void 0, void 0, void 0, function* () {
     yield userModel_1.default.findByIdAndUpdate(formData.user, {
@@ -32,17 +53,7 @@ exports.createFuelBill = (0, handlerFactory_1.createOne)(fuelBillModel_1.default
     });
 }));
 exports.updateFuelBill = (0, handlerFactory_1.updateOne)(fuelBillModel_1.default);
-exports.deleteFuelBill = (0, handlerFactory_1.deleteOne)(fuelBillModel_1.default, (data) => __awaiter(void 0, void 0, void 0, function* () {
-    yield userModel_1.default.findByIdAndUpdate(data.user, {
-        $pull: { fuelBill: data === null || data === void 0 ? void 0 : data._id },
-    });
-    yield vehicleModel_1.default.findByIdAndUpdate(data.vehicle, {
-        $pull: { fuelBill: data === null || data === void 0 ? void 0 : data._id },
-    });
-    yield reservationArchiveModel_1.default.findByIdAndUpdate(data.reservationArchive, {
-        $pull: { fuelBill: data === null || data === void 0 ? void 0 : data._id },
-    });
-}));
+exports.deleteFuelBill = (0, handlerFactory_1.deleteOne)(fuelBillModel_1.default, exports.fuelBillDeleteFromReference);
 exports.getUserFuelBills = (0, handlerFactory_1.getAll)(fuelBillModel_1.default, (req) => {
     return { user: req.params.userId };
 });
@@ -52,3 +63,4 @@ exports.getVehicleFuelBills = (0, handlerFactory_1.getAll)(fuelBillModel_1.defau
 exports.getReservationFuelBills = (0, handlerFactory_1.getAll)(fuelBillModel_1.default, (req) => {
     return { reservationArchive: req.params.reservationId };
 });
+/** End Routes Functions **/

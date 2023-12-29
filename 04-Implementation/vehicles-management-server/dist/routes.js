@@ -9,6 +9,7 @@ const garageRoutes_1 = __importDefault(require("./routes/garageRoutes"));
 const reservationArchiveRoutes_1 = __importDefault(require("./routes/reservationArchiveRoutes"));
 const fuelBillRoutes_1 = __importDefault(require("./routes/fuelBillRoutes"));
 const requestRoutes_1 = __importDefault(require("./routes/requestRoutes"));
+const contentRoutes_1 = __importDefault(require("./routes/contentRoutes"));
 function routes(app) {
     app.use("/api/v1/user", userRoutes_1.default);
     app.use("/api/v1/vehicle", vehicleRoutes_1.default);
@@ -16,7 +17,7 @@ function routes(app) {
     app.use("/api/v1/reservationArchive", reservationArchiveRoutes_1.default);
     app.use("/api/v1/fuelBill", fuelBillRoutes_1.default);
     app.use("/api/v1/request", requestRoutes_1.default);
+    app.use("/api/v1/content", contentRoutes_1.default);
     return app;
 }
 exports.default = routes;
-;

@@ -13,34 +13,44 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.setNotificationToken = exports.deleteMe = exports.updateMe = exports.getMe = exports.acceptPendingUser = exports.getPendingUsers = exports.blockUser = exports.activeUser = exports.deleteUser = exports.getUser = exports.getAllUsers = void 0;
-const catchAsync_1 = __importDefault(require("../utils/catchAsync"));
-const userModel_1 = __importDefault(require("./../models/userModel"));
-const handlerFactory_1 = require("./handlerFactory");
-const AppError_1 = __importDefault(require("../utils/AppError"));
+// npm packages
 const formidable_1 = require("formidable");
+// project imports
+const handlerFactory_1 = require("../utils/handlerFactory");
 const handlerFormData_1 = require("../utils/handlerFormData");
+const catchAsync_1 = __importDefault(require("../utils/catchAsync"));
 const email_1 = __importDefault(require("../utils/email"));
-exports.getAllUsers = (0, handlerFactory_1.getAll)(userModel_1.default);
+const AppError_1 = __importDefault(require("../utils/AppError"));
+// models
+const userModel_1 = __importDefault(require("./../models/userModel"));
+/** Start Routes Functions **/
+exports.getAllUsers = (0, handlerFactory_1.getAll)(userModel_1.default, () => ({ role: { $ne: "admin" } }));
 exports.getUser = (0, handlerFactory_1.getOne)(userModel_1.default);
 exports.deleteUser = (0, handlerFactory_1.deleteOne)(userModel_1.default);
 exports.activeUser = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield userModel_1.default.findById(req.params.userId);
     if (!(user === null || user === void 0 ? void 0 : user.block))
         return next(new AppError_1.default("This user is not blocked", 401));
-    yield userModel_1.default.findByIdAndUpdate(req.params.userId, { block: false });
+    yield userModel_1.default.findByIdAndUpdate(req.params.userId, {
+        block: false,
+        active: true,
+    });
     return res.status(200).json({
         status: `success`,
-        message: `the user id: ${user._id}, name: ${user.name}, is active now.`,
+        message: "the user is active now.",
     });
 }));
 exports.blockUser = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield userModel_1.default.findById(req.params.userId);
     if (user === null || user === void 0 ? void 0 : user.block)
         return next(new AppError_1.default("This user is already blocked", 401));
-    yield userModel_1.default.findByIdAndUpdate(req.params.userId, { block: true });
+    yield userModel_1.default.findByIdAndUpdate(req.params.userId, {
+        block: true,
+        active: false,
+    });
     return res.status(200).json({
         status: `success`,
-        message: `the user id: ${user._id}, name: ${user.name}, blocked now.`,
+        message: "the user blocked now.",
     });
 }));
 exports.getPendingUsers = (0, handlerFactory_1.getAll)(userModel_1.default, () => ({
@@ -58,7 +68,7 @@ exports.acceptPendingUser = (0, catchAsync_1.default)((req, res, next) => __awai
         message: "Admin Accept Your Sign Up, You can use the app now",
     });
     return res.status(200).json({
-        status: "User Accepted Successfully",
+        message: "User Accepted Successfully",
     });
 }));
 exports.getMe = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -116,3 +126,4 @@ exports.setNotificationToken = (0, catchAsync_1.default)((req, res, next) => __a
         message: "Token Stored Successfully",
     });
 }));
+/** End Routes Functions **/

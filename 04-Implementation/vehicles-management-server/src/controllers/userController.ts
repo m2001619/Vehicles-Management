@@ -20,7 +20,10 @@ export const activeUser = catchAsync(async (req, res, next) => {
 
   if (!user?.block) return next(new AppError("This user is not blocked", 401));
 
-  await User.findByIdAndUpdate(req.params.userId, { block: false });
+  await User.findByIdAndUpdate(req.params.userId, {
+    block: false,
+    active: true,
+  });
 
   return res.status(200).json({
     status: `success`,
@@ -34,7 +37,10 @@ export const blockUser = catchAsync(async (req, res, next) => {
   if (user?.block)
     return next(new AppError("This user is already blocked", 401));
 
-  await User.findByIdAndUpdate(req.params.userId, { block: true });
+  await User.findByIdAndUpdate(req.params.userId, {
+    block: true,
+    active: false,
+  });
 
   return res.status(200).json({
     status: `success`,

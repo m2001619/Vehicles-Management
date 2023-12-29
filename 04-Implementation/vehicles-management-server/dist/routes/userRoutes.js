@@ -3,9 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// express
 const express_1 = __importDefault(require("express"));
+// project imports
 const authController_1 = require("../controllers/authController");
 const userController_1 = require("../controllers/userController");
+/** Start Router **/
 const router = express_1.default.Router();
 router
     .post("/validateEmail", authController_1.validateEmail)
@@ -29,4 +32,5 @@ router
     .delete("/deleteUser/:id", userController_1.deleteUser)
     .patch("/activeUser/:userId", userController_1.activeUser)
     .patch("/blockUser/:userId", userController_1.blockUser);
+/** End Router **/
 exports.default = router;

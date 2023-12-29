@@ -150,7 +150,8 @@ export const askToReturnVehicle = catchAsync(
     const { odo } = req.body;
 
     const vehicle = await VehicleModel.findById(vehicleId);
-    if (`${vehicle.user}` !== userId) {
+    //@ts-ignore
+    if (vehicle.user.id !== userId) {
       return next(
         new AppError("This vehicle has been in use by another user", 402)
       );

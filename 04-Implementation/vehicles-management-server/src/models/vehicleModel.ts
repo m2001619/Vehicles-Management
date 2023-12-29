@@ -2,16 +2,14 @@
 import mongoose, { Schema, Model } from "mongoose";
 
 // interfaces
-import {
-  IVehicle,
-} from "../constans/Interfaces";
+import { IVehicle } from "../constans/Interfaces";
 
 // constants
 import {
-    bodyTypes,
-    fuelTypes,
-    statuses,
-    transmissionTypes,
+  bodyTypes,
+  fuelTypes,
+  statuses,
+  transmissionTypes,
 } from "../constans/Interfaces";
 
 /** Start Schema **/
@@ -74,14 +72,14 @@ const vehicleSchema: Schema<IVehicle> = new Schema(
       required: [true, "Vehicle should have a type of transmission."],
       enum: transmissionTypes,
     },
+    numSeats: {
+      type: Number,
+      required: [true, "Vehicle should have the number of seats."],
+    },
     garage: {
       type: Schema.Types.ObjectId,
       ref: "Garage",
       required: [true, "Vehicle should belong to a garage."],
-    },
-    numSeats: {
-      type: Number,
-      required: [true, "Vehicle should have the number of seats."],
     },
     user: {
       type: Schema.Types.ObjectId,

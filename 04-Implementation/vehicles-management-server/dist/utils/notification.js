@@ -13,11 +13,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendNotificationToAdmin = exports.sendNotificationToUser = void 0;
+// npm packages
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
+// models
+const userModel_1 = __importDefault(require("../models/userModel"));
 // Initialize the Firebase Admin SDK
 firebase_admin_1.default.initializeApp({
     credential: firebase_admin_1.default.credential.cert(require("../firebase-adminsdk.json")),
 });
+/** Start Functions **/
 // Send a push notification to a React Native app
 const sendNotificationToUser = (deviceToken, data) => __awaiter(void 0, void 0, void 0, function* () {
     const message = {
@@ -43,18 +47,16 @@ const sendNotificationToUser = (deviceToken, data) => __awaiter(void 0, void 0, 
 });
 exports.sendNotificationToUser = sendNotificationToUser;
 // Send a push notification to a React.js web app
-const sendNotificationToAdmin = (deviceToken) => __awaiter(void 0, void 0, void 0, function* () {
+const sendNotificationToAdmin = (notification) => __awaiter(void 0, void 0, void 0, function* () {
+    const adminData = yield userModel_1.default.findOne({ role: "admin" });
     const message = {
-        notification: {
-            title: "`$FooCorp` up 1.43% on the day",
-            body: "FooCorp gained 11.80 points to close at 835.67, up 1.43% on the day.",
-        },
+        notification,
         webpush: {
             notification: {
                 icon: "path/to/notification-icon.png",
             },
         },
-        token: deviceToken,
+        token: adminData.notificationToken,
     };
     try {
         yield firebase_admin_1.default.messaging().send(message);
@@ -64,3 +66,4 @@ const sendNotificationToAdmin = (deviceToken) => __awaiter(void 0, void 0, void 
     }
 });
 exports.sendNotificationToAdmin = sendNotificationToAdmin;
+/** End Functions **/
