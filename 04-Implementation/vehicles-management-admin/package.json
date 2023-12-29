@@ -8,6 +8,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "check-update-packages": "ncu -u",
+    "eslint": "eslint .",
     "intall-package": "npm install"
   },
   "dependencies": {

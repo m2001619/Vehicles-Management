@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client';
 
-const baseUrl =  'https://vehicles-managent-server.onrender.com'; // http://localhost:1865
+const baseUrl = 'https://vehicles-managent-server.onrender.com'; // http://localhost:1865
 
 export const socket = io(baseUrl);
 
