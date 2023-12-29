@@ -120,7 +120,7 @@ const ListAllVehicle = () => {
         }
       });
       if (res.status === 200) {
-        updateState({ vehiclesList: res.data.data, count: +(res.data.length / limit).toFixed() });
+        updateState({ vehiclesList: res.data.data, count: Math.ceil(+(res.data.length / limit)) });
       }
     } catch (e) {
       handleRequestError(e, t);
@@ -146,7 +146,7 @@ const ListAllVehicle = () => {
         </Box>
         {FilterCollapse()}
         {isLoading ? <TableLoader /> : VehicleList()}
-        <Pagination count={count} color="primary" onChange={handleChangePage} />
+        <Pagination page={page} count={count} color="primary" onChange={handleChangePage} />
       </Paper>
       {showRequestDialog && (
         <RequestDialog

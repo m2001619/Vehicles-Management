@@ -353,6 +353,7 @@ const ListAllArchive = () => {
     const { garage, user, vehicle, departure, arrival, note } = data;
     return {
       limit,
+      status: 'returned',
       page: page + 1,
       garage: garage !== 'All Garage' ? garage : null,
       user: user !== 'All User' ? user : null,
