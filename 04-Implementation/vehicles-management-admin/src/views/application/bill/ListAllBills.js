@@ -250,9 +250,10 @@ const ListAllBills = () => {
   }
 
   function handleInfo(image, name) {
+    const src = image ? image : require('../../../assets/images/users/user.png');
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-        <img alt={'user'} src={image} style={{ width: 30, height: 30, borderRadius: '50%' }} />
+        <img alt={'user'} src={src} style={{ width: 30, height: 30, borderRadius: '50%' }} />
         <Box>
           <Typography sx={theme.typography.h6}>{name}</Typography>
         </Box>
