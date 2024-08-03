@@ -1,48 +1,52 @@
-#include <WiFi.h>
-#include <WebSocketsClient.h>
-// Wi-Fi credentials
-const char* ssid = "Ilknet@8194"; // wifi Ağ ismi
-const char* password = "20042004Y"; // wifi Ağ şifresi
-
-// WebSocket server URL and port
-const char* ws_host = "https://vehicles-management.appberrysoft.com"; // server host domain 
-const uint16_t ws_port = 443;
-const char* ws_path = "/UPDATE_VEHICLE_LOCATION";
-// WebSocket client
-WebSocketsClient webSocket;
+#include "WiFi.h"
 void setup() {
-  // Start serial communication
   Serial.begin(115200);
-  // Connect to Wi-Fi
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("WiFi connected");
-  Serial.println("WebSocket Connected");
-  Serial.println("WebSocket Connected");
-  // Initialize WebSocket
-  webSocket.begin(ws_host, ws_port, ws_path);
-  webSocket.onEvent(webSocketEvent);
-  webSocket.setReconnectInterval(5000);
+  // Set WiFi to station mode and disconnect from an AP if it was previously connected.
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  delay(100);
+  Serial.println("Setup done");
 }
 void loop() {
-  // WebSocket loop
-  webSocket.loop();
-
-  delay(1000);
-}
-void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
-  switch (type) {
-    case WStype_DISCONNECTED:
-      Serial.println("WebSocket Disconnected");
-      break;
-    case WStype_CONNECTED:
-      Serial.println("WebSocket Connected");
-      break;
-    case WStype_TEXT:
-      Serial.printf("WebSocket Text: %s\n", payload);
-      break;
+  Serial.println("Scan start");
+  // WiFi.scanNetworks will return the number of networks found.
+  int n = WiFi.scanNetworks();
+  Serial.println("Scan done");
+  if (n == 0) {
+    Serial.println("no networks found");
+  } else {
+    Serial.print(n);
+    Serial.println(" networks found");
+    Serial.println("Nr | SSID                             | RSSI | CH | Encryption");
+    for (int i = 0; i < n; ++i) {
+      // Print SSID and RSSI for each network found
+      Serial.printf("%2d", i + 1);
+      Serial.print(" | ");
+      Serial.printf("%-32.32s", WiFi.SSID(i).c_str());
+      Serial.print(" | ");
+      Serial.printf("%4ld", WiFi.RSSI(i));
+      Serial.print(" | ");
+      Serial.printf("%2ld", WiFi.channel(i));
+      Serial.print(" | ");
+      switch (WiFi.encryptionType(i)) {
+        case WIFI_AUTH_OPEN:            Serial.print("open"); break;
+        case WIFI_AUTH_WEP:             Serial.print("WEP"); break;
+        case WIFI_AUTH_WPA_PSK:         Serial.print("WPA"); break;
+        case WIFI_AUTH_WPA2_PSK:        Serial.print("WPA2"); break;
+        case WIFI_AUTH_WPA_WPA2_PSK:    Serial.print("WPA+WPA2"); break;
+        case WIFI_AUTH_WPA2_ENTERPRISE: Serial.print("WPA2-EAP"); break;
+        case WIFI_AUTH_WPA3_PSK:        Serial.print("WPA3"); break;
+        case WIFI_AUTH_WPA2_WPA3_PSK:   Serial.print("WPA2+WPA3"); break;
+        case WIFI_AUTH_WAPI_PSK:        Serial.print("WAPI"); break;
+        default:                        Serial.print("unknown");
+      }
+      Serial.println();
+      delay(10);
+    }
   }
+  Serial.println("");
+  // Delete the scan result to free memory for code below.
+  WiFi.scanDelete();
+  // Wait a bit before scanning again.
+  delay(5000);
 }
