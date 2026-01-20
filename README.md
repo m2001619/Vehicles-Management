@@ -51,7 +51,7 @@ You can sign up using your mail.
 
 ## Installation
 
-Access the code from those repositories (Private repositories just can access by project members):
+Access the code from those repositories:
 
 1. **Admin Dashboard**: https://github.com/m2001619/vehicles-management-admin
 2. **Backend Server**: https://github.com/m2001619/vehicles-management-server
